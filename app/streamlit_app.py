@@ -104,11 +104,17 @@ def main():
         st.error("Models not found. Run Step 6 first to generate model files in /models.")
         st.stop()
 
-    growth_pipe, attr_pipe = load_models()
+    @st.cache_resource
+def load_models():
+    growth = load(GROWTH_MODEL_PATH)
+    attr = load(ATTRITION_MODEL_PATH)
+    return growth["pipeline"], attr["pipeline"]
+
 
     base_input = build_input_form()
 
     if st.button("Generate recommendations"):
+        growth_pipe, attr_pipe = load_models()
         scenarios = default_scenarios()
         scenario_rows = generate_scenario_inputs(base_input, scenarios)
 

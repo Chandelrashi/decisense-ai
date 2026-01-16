@@ -23,16 +23,52 @@ ATTRITION_MODEL_PATH = MODELS_DIR / "attrition_model.joblib"
 
 @st.cache_resource
 def load_models():
-    """Load trained pipelines once and cache them."""
+    """Load trained pipelines once and cache them.
+
+    Supports both formats:
+    - joblib file contains a Pipeline directly
+    - joblib file contains a dict with keys like {"pipeline": <Pipeline>, ...}
+    """
     if not GROWTH_MODEL_PATH.exists():
         raise FileNotFoundError(f"Missing model: {GROWTH_MODEL_PATH}")
     if not ATTRITION_MODEL_PATH.exists():
         raise FileNotFoundError(f"Missing model: {ATTRITION_MODEL_PATH}")
 
-    growth_pipe = load(GROWTH_MODEL_PATH)
-    attr_pipe = load(ATTRITION_MODEL_PATH)
+    growth_obj = load(GROWTH_MODEL_PATH)
+    attr_obj = load(ATTRITION_MODEL_PATH)
+
+    # Unwrap if stored as dict
+    growth_pipe = growth_obj.get("pipeline") if isinstance(growth_obj, dict) else growth_obj
+    attr_pipe = attr_obj.get("pipeline") if isinstance(attr_obj, dict) else attr_obj
+
+    # Extra safety: if still dict, try common alternative keys
+    if isinstance(growth_pipe, dict):
+        for k in ("model", "estimator", "clf"):
+            if k in growth_pipe:
+                growth_pipe = growth_pipe[k]
+                break
+
+    if isinstance(attr_pipe, dict):
+        for k in ("model", "estimator", "clf"):
+            if k in attr_pipe:
+                attr_pipe = attr_pipe[k]
+                break
+
+    # Final validation
+    if not hasattr(growth_pipe, "predict_proba"):
+        raise TypeError(
+            f"Growth model loaded, but it is not a classifier pipeline. "
+            f"Type={type(growth_pipe)}. Keys={list(growth_obj.keys()) if isinstance(growth_obj, dict) else 'N/A'}"
+        )
+
+    if not hasattr(attr_pipe, "predict_proba"):
+        raise TypeError(
+            f"Attrition model loaded, but it is not a classifier pipeline. "
+            f"Type={type(attr_pipe)}. Keys={list(attr_obj.keys()) if isinstance(attr_obj, dict) else 'N/A'}"
+        )
 
     return growth_pipe, attr_pipe
+
 
 
 def build_input_form() -> Dict[str, Any]:

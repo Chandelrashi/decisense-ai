@@ -102,6 +102,19 @@ def main():
         "Decision-support tool: compares scenarios using Growth Probability, Attrition Risk, "
         "utility-based ranking, and clear rationale."
     )
+st.subheader("Debug: Filesystem check (temporary)")
+
+st.write("PROJECT_ROOT:", str(PROJECT_ROOT))
+st.write("MODELS_DIR:", str(MODELS_DIR))
+st.write("GROWTH_MODEL_PATH:", str(GROWTH_MODEL_PATH))
+st.write("ATTRITION_MODEL_PATH:", str(ATTRITION_MODEL_PATH))
+
+st.write("MODELS_DIR exists?:", MODELS_DIR.exists())
+
+if MODELS_DIR.exists():
+    st.write("Files inside MODELS_DIR:", [p.name for p in MODELS_DIR.iterdir()])
+else:
+    st.write("PROJECT_ROOT listing:", [p.name for p in PROJECT_ROOT.iterdir()])
 
     if not GROWTH_MODEL_PATH.exists() or not ATTRITION_MODEL_PATH.exists():
         st.error("Models not found. Ensure models/*.joblib exist in the repo.")

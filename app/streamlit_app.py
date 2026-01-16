@@ -1,12 +1,6 @@
-import sys
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
-
-
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -14,18 +8,22 @@ import pandas as pd
 import streamlit as st
 from joblib import load
 
+# Ensure repo root is on the Python path (important for Streamlit Cloud)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT))
+
 from src.decision.scenario_simulator import default_scenarios, generate_scenario_inputs
 from src.decision.ranker import rank_scenarios
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MODELS_DIR = PROJECT_ROOT / "models"
-
 GROWTH_MODEL_PATH = MODELS_DIR / "growth_model.joblib"
 ATTRITION_MODEL_PATH = MODELS_DIR / "attrition_model.joblib"
 
 
+@st.cache_resource
 def load_models():
+    """Load ML pipelines once and cache them (fast + stable on Streamlit Cloud)."""
     growth = load(GROWTH_MODEL_PATH)
     attr = load(ATTRITION_MODEL_PATH)
     return growth["pipeline"], attr["pipeline"]
@@ -73,17 +71,14 @@ def build_input_form() -> Dict[str, Any]:
         "acquisition_trend": acquisition_trend,
         "pricing_strategy": pricing_strategy,
         "capacity_utilisation": capacity_utilisation,
-
         "workforce_size": int(workforce_size),
         "attrition_rate_bucket": attrition_rate_bucket,
         "skill_gap_level": skill_gap_level,
         "salary_competitiveness": salary_competitiveness,
         "workload_level": workload_level,
-
         "risk_tolerance": risk_tolerance,
         "budget_flexibility": budget_flexibility,
         "hiring_feasibility": hiring_feasibility,
-
         "planned_marketing_change": planned_marketing_change,
         "planned_retention_invest": planned_retention_invest,
         "hiring_plan": hiring_plan,
@@ -98,23 +93,21 @@ def predict_probs(pipe, rows: List[Dict[str, Any]]) -> List[float]:
 def main():
     st.set_page_config(page_title="DeciSense AI", layout="wide")
     st.title("DeciSense AI — Growth & Workforce Decision Intelligence (MVP)")
-    st.caption("Decision-support tool: compares scenarios using Growth Probability, Attrition Risk, uncertainty-aware ranking, and clear rationale.")
+    st.caption(
+        "Decision-support tool: compares scenarios using Growth Probability, Attrition Risk, "
+        "utility-based ranking, and clear rationale."
+    )
 
     if not GROWTH_MODEL_PATH.exists() or not ATTRITION_MODEL_PATH.exists():
-        st.error("Models not found. Run Step 6 first to generate model files in /models.")
+        st.error("Models not found. Ensure models/*.joblib exist in the repo.")
         st.stop()
-
-    @st.cache_resource
-def load_models():
-    growth = load(GROWTH_MODEL_PATH)
-    attr = load(ATTRITION_MODEL_PATH)
-    return growth["pipeline"], attr["pipeline"]
-
 
     base_input = build_input_form()
 
     if st.button("Generate recommendations"):
+        # Lazy-load only when needed (faster cold-start on Streamlit Cloud)
         growth_pipe, attr_pipe = load_models()
+
         scenarios = default_scenarios()
         scenario_rows = generate_scenario_inputs(base_input, scenarios)
 
@@ -136,21 +129,32 @@ def load_models():
         st.divider()
         st.subheader("Ranked Scenarios")
         st.dataframe(
-            ranked[[
-                "scenario", "growth_probability", "attrition_risk",
-                "delta_growth", "delta_attrition_risk",
-                "cost_index", "utility", "rationale"
-            ]],
-            use_container_width=True
+            ranked[
+                [
+                    "scenario",
+                    "growth_probability",
+                    "attrition_risk",
+                    "delta_growth",
+                    "delta_attrition_risk",
+                    "cost_index",
+                    "utility",
+                    "rationale",
+                ]
+            ],
+            use_container_width=True,
         )
 
         st.subheader("Scenario Details (levers)")
         st.dataframe(
-            ranked[[
-                "scenario", "planned_marketing_change",
-                "planned_retention_invest", "hiring_plan"
-            ]],
-            use_container_width=True
+            ranked[
+                [
+                    "scenario",
+                    "planned_marketing_change",
+                    "planned_retention_invest",
+                    "hiring_plan",
+                ]
+            ],
+            use_container_width=True,
         )
 
 

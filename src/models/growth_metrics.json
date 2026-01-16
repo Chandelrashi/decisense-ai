@@ -1,0 +1,10 @@
+{
+  "model": "GrowthModel",
+  "target": "growth_target_hit",
+  "cv_roc_auc_mean": 0.5984718292742588,
+  "cv_roc_auc_std": 0.023554000503269685,
+  "cv_pr_auc_mean": 0.657986396221699,
+  "cv_pr_auc_std": 0.02318817667186693,
+  "test_roc_auc": 0.5795808376453538,
+  "test_pr_auc": 0.6351060080632511
+}

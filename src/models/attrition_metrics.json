@@ -1,0 +1,10 @@
+{
+  "model": "AttritionModel",
+  "target": "high_attrition_risk",
+  "cv_roc_auc_mean": 0.6072437441724662,
+  "cv_roc_auc_std": 0.01833560998677418,
+  "cv_pr_auc_mean": 0.6604257263360312,
+  "cv_pr_auc_std": 0.024182127432407267,
+  "test_roc_auc": 0.5495255610339498,
+  "test_pr_auc": 0.617742444869845
+}

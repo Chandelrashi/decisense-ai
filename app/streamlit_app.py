@@ -264,7 +264,7 @@ def generate_pdf_report(
 
     # Title
     c.setFont("Helvetica-Bold", 16)
-    line("DeciSense AI — Decision Report", dy=22)
+    line("DeciSense AI : Decision Report", dy=22)
 
     c.setFont("Helvetica", 10)
     line("This report summarises your inputs, the recommended scenario, and how to interpret the outputs.")
@@ -327,7 +327,7 @@ def main():
     st.set_page_config(page_title="DeciSense AI", page_icon="🧠", layout="wide")
     inject_css()
 
-    st.title("DeciSense AI — Growth & Workforce Decision Intelligence")
+    st.title("DeciSense AI : Growth & Workforce Decision Intelligence")
     st.markdown(
         "<div class='muted'>A decision-support MVP that compares scenarios using Growth Probability, Attrition Risk, "
         "utility-based ranking, and clear rationale.</div>",

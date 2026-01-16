@@ -15,6 +15,7 @@ sys.path.append(str(PROJECT_ROOT))
 from src.decision.scenario_simulator import default_scenarios, generate_scenario_inputs
 from src.decision.ranker import rank_scenarios
 
+
 MODELS_DIR = PROJECT_ROOT / "models"
 GROWTH_MODEL_PATH = MODELS_DIR / "growth_model.joblib"
 ATTRITION_MODEL_PATH = MODELS_DIR / "attrition_model.joblib"
@@ -22,6 +23,7 @@ ATTRITION_MODEL_PATH = MODELS_DIR / "attrition_model.joblib"
 
 @st.cache_resource
 def load_models():
+    """Load trained pipelines once and cache them."""
     if not GROWTH_MODEL_PATH.exists():
         raise FileNotFoundError(f"Missing model: {GROWTH_MODEL_PATH}")
     if not ATTRITION_MODEL_PATH.exists():
@@ -29,6 +31,7 @@ def load_models():
 
     growth_pipe = load(GROWTH_MODEL_PATH)
     attr_pipe = load(ATTRITION_MODEL_PATH)
+
     return growth_pipe, attr_pipe
 
 
@@ -59,7 +62,7 @@ def build_input_form() -> Dict[str, Any]:
     budget_flexibility = st.selectbox("Budget flexibility (next 90 days)", ["Very limited", "Moderate", "Flexible"])
     hiring_feasibility = st.selectbox("Hiring feasibility", ["Easy", "Moderate", "Difficult"])
 
-    # Baseline scenario levers (user's current plan)
+    # Baseline scenario levers
     st.subheader("Current Plan (Baseline Levers)")
     planned_marketing_change = st.selectbox("Planned marketing change", ["-10", "0", "+5", "+10", "+20"], index=1)
     planned_retention_invest = st.selectbox("Planned retention investment", ["0", "+3", "+5", "+10"], index=0)
@@ -95,26 +98,14 @@ def predict_probs(pipe, rows: List[Dict[str, Any]]) -> List[float]:
 
 def main():
     st.set_page_config(page_title="DeciSense AI", layout="wide")
+
     st.title("DeciSense AI — Growth & Workforce Decision Intelligence (MVP)")
     st.caption(
         "Decision-support tool: compares scenarios using Growth Probability, Attrition Risk, "
         "utility-based ranking, and clear rationale."
     )
 
-    # ---- Debug block (temporary) ----
-    st.subheader("Debug: Filesystem check (temporary)")
-    st.write("PROJECT_ROOT:", str(PROJECT_ROOT))
-    st.write("MODELS_DIR:", str(MODELS_DIR))
-    st.write("GROWTH_MODEL_PATH:", str(GROWTH_MODEL_PATH))
-    st.write("ATTRITION_MODEL_PATH:", str(ATTRITION_MODEL_PATH))
-    st.write("MODELS_DIR exists?:", MODELS_DIR.exists())
-
-    if MODELS_DIR.exists():
-        st.write("Files inside MODELS_DIR:", sorted([p.name for p in MODELS_DIR.iterdir()]))
-    else:
-        st.write("PROJECT_ROOT listing:", sorted([p.name for p in PROJECT_ROOT.iterdir()]))
-
-    # ---- Stop early if models missing ----
+    # Hard stop if model files are missing
     if not GROWTH_MODEL_PATH.exists() or not ATTRITION_MODEL_PATH.exists():
         st.error("Models not found. Ensure models/*.joblib exist in the repo.")
         st.stop()
@@ -143,6 +134,7 @@ def main():
         c3.metric("Utility Score", f"{top['utility']:.3f}")
 
         st.divider()
+
         st.subheader("Ranked Scenarios")
         st.dataframe(
             ranked[
@@ -176,7 +168,6 @@ def main():
 
 if __name__ == "__main__":
     try:
-        st.write("App initialised successfully.")
         main()
     except Exception as e:
         st.error("Application failed to start.")

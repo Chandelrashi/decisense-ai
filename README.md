@@ -142,6 +142,7 @@ decisense-ai/
 pip install -r requirements.txt
 streamlit run app/streamlit_app.py
 
+```
 ## 📊 Outputs
 
 Ranked decision scenarios

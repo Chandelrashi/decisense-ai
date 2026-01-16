@@ -15,7 +15,6 @@ sys.path.append(str(PROJECT_ROOT))
 from src.decision.scenario_simulator import default_scenarios, generate_scenario_inputs
 from src.decision.ranker import rank_scenarios
 
-
 MODELS_DIR = PROJECT_ROOT / "models"
 GROWTH_MODEL_PATH = MODELS_DIR / "growth_model.joblib"
 ATTRITION_MODEL_PATH = MODELS_DIR / "attrition_model.joblib"
@@ -30,7 +29,6 @@ def load_models():
 
     growth_pipe = load(GROWTH_MODEL_PATH)
     attr_pipe = load(ATTRITION_MODEL_PATH)
-
     return growth_pipe, attr_pipe
 
 
@@ -102,20 +100,21 @@ def main():
         "Decision-support tool: compares scenarios using Growth Probability, Attrition Risk, "
         "utility-based ranking, and clear rationale."
     )
-st.subheader("Debug: Filesystem check (temporary)")
 
-st.write("PROJECT_ROOT:", str(PROJECT_ROOT))
-st.write("MODELS_DIR:", str(MODELS_DIR))
-st.write("GROWTH_MODEL_PATH:", str(GROWTH_MODEL_PATH))
-st.write("ATTRITION_MODEL_PATH:", str(ATTRITION_MODEL_PATH))
+    # ---- Debug block (temporary) ----
+    st.subheader("Debug: Filesystem check (temporary)")
+    st.write("PROJECT_ROOT:", str(PROJECT_ROOT))
+    st.write("MODELS_DIR:", str(MODELS_DIR))
+    st.write("GROWTH_MODEL_PATH:", str(GROWTH_MODEL_PATH))
+    st.write("ATTRITION_MODEL_PATH:", str(ATTRITION_MODEL_PATH))
+    st.write("MODELS_DIR exists?:", MODELS_DIR.exists())
 
-st.write("MODELS_DIR exists?:", MODELS_DIR.exists())
+    if MODELS_DIR.exists():
+        st.write("Files inside MODELS_DIR:", sorted([p.name for p in MODELS_DIR.iterdir()]))
+    else:
+        st.write("PROJECT_ROOT listing:", sorted([p.name for p in PROJECT_ROOT.iterdir()]))
 
-if MODELS_DIR.exists():
-    st.write("Files inside MODELS_DIR:", [p.name for p in MODELS_DIR.iterdir()])
-else:
-    st.write("PROJECT_ROOT listing:", [p.name for p in PROJECT_ROOT.iterdir()])
-
+    # ---- Stop early if models missing ----
     if not GROWTH_MODEL_PATH.exists() or not ATTRITION_MODEL_PATH.exists():
         st.error("Models not found. Ensure models/*.joblib exist in the repo.")
         st.stop()
@@ -123,7 +122,6 @@ else:
     base_input = build_input_form()
 
     if st.button("Generate recommendations"):
-        # Lazy-load only when needed (faster cold-start on Streamlit Cloud)
         growth_pipe, attr_pipe = load_models()
 
         scenarios = default_scenarios()
@@ -183,5 +181,3 @@ if __name__ == "__main__":
     except Exception as e:
         st.error("Application failed to start.")
         st.exception(e)
-
-

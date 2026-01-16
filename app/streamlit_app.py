@@ -23,9 +23,14 @@ ATTRITION_MODEL_PATH = MODELS_DIR / "attrition_model.joblib"
 
 @st.cache_resource
 def load_models():
-    """Load ML pipelines once and cache them (fast + stable on Streamlit Cloud)."""
+    if not GROWTH_MODEL_PATH.exists():
+        raise FileNotFoundError(f"Missing model: {GROWTH_MODEL_PATH}")
+    if not ATTRITION_MODEL_PATH.exists():
+        raise FileNotFoundError(f"Missing model: {ATTRITION_MODEL_PATH}")
+
     growth = load(GROWTH_MODEL_PATH)
     attr = load(ATTRITION_MODEL_PATH)
+
     return growth["pipeline"], attr["pipeline"]
 
 
@@ -160,8 +165,10 @@ def main():
 
 if __name__ == "__main__":
     try:
+        st.write("App initialised successfully.")
         main()
     except Exception as e:
         st.error("Application failed to start.")
         st.exception(e)
+
 

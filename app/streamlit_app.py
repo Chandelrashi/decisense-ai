@@ -28,10 +28,10 @@ def load_models():
     if not ATTRITION_MODEL_PATH.exists():
         raise FileNotFoundError(f"Missing model: {ATTRITION_MODEL_PATH}")
 
-    growth = load(GROWTH_MODEL_PATH)
-    attr = load(ATTRITION_MODEL_PATH)
+    growth_pipe = load(GROWTH_MODEL_PATH)
+    attr_pipe = load(ATTRITION_MODEL_PATH)
 
-    return growth["pipeline"], attr["pipeline"]
+    return growth_pipe, attr_pipe
 
 
 def build_input_form() -> Dict[str, Any]:
